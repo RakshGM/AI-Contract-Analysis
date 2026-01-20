@@ -309,6 +309,40 @@ st.markdown("""
         color: white !important;
     }
     
+    /* Selectbox styling - improve text visibility */
+    section[data-testid="stSidebar"] .stSelectbox label {
+        color: white !important;
+        font-weight: 600 !important;
+    }
+    
+    .stSelectbox label {
+        color: #000000 !important;
+        font-weight: 600 !important;
+    }
+    
+    section[data-testid="stSidebar"] div[data-baseweb="popover"] {
+        background-color: #ffffff !important;
+    }
+    
+    section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
+        color: white !important;
+    }
+    
+    /* Dropdown options - ensure black text on white background */
+    [data-baseweb="popover"] li {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+    
+    [data-baseweb="popover"] li:hover {
+        background-color: #f0f0f0 !important;
+        color: #000000 !important;
+    }
+    
+    [data-baseweb="select"] > div:first-child {
+        color: white !important;
+    }
+    
     /* Tab Styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 2rem;
@@ -498,6 +532,7 @@ with st.sidebar:
     
     # Analysis settings with icons
     st.markdown("#### 🎯 Analysis Settings")
+    st.markdown('<style>label { color: white !important; font-weight: 600 !important; }</style>', unsafe_allow_html=True)
     analysis_mode = st.selectbox(
         "Analysis Mode",
         ["Quick Analysis", "Comprehensive", "Domain-Specific"],
