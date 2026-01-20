@@ -6,6 +6,7 @@ Provides a polished interface for multi-domain contract analysis
 import streamlit as st
 import asyncio
 from datetime import datetime
+import re
 from ai_agents import (
     PlanningModule,
     build_graph,
@@ -23,6 +24,71 @@ from ai_agents.report_generator import (
     ReportFormat,
     ReportFocus
 )
+
+# ============================================================================
+# OPTIMIZATION: Intelligent Document Chunking for Large Files
+# ============================================================================
+
+def chunk_document(text: str, max_tokens: int = 6000, overlap: int = 200):
+    """
+    Split large documents into manageable chunks for API processing
+    Optimized for Gemini's token limit
+    
+    Args:
+        text: Full document text
+        max_tokens: Max tokens per chunk (~4 chars per token)
+        overlap: Overlap between chunks for context
+    
+    Returns:
+        List of document chunks
+    """
+    max_chars = max_tokens * 4
+    chunks = []
+    
+    # Split by paragraphs first
+    paragraphs = text.split('\n\n')
+    current_chunk = ""
+    
+    for para in paragraphs:
+        if len(current_chunk) + len(para) < max_chars:
+            current_chunk += para + '\n\n'
+        else:
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+            current_chunk = para + '\n\n'
+    
+    if current_chunk:
+        chunks.append(current_chunk.strip())
+    
+    return chunks
+
+def get_key_sections(text: str, max_chars: int = 3000):
+    """
+    Extract the most important sections from large documents
+    Focus on: definitions, payment terms, liability, termination
+    """
+    important_keywords = [
+        "definition", "agreement", "payment", "fee", "compensation",
+        "liability", "limitation", "indemnif", "termination", "term",
+        "confidential", "ip", "intellectual property", "compliance",
+        "warranty", "sla", "service level", "breach", "dispute"
+    ]
+    
+    lines = text.split('\n')
+    important_lines = []
+    
+    for line in lines:
+        if any(keyword in line.lower() for keyword in important_keywords):
+            important_lines.append(line)
+    
+    # Combine important lines
+    key_text = '\n'.join(important_lines[:200])
+    
+    if len(key_text) > max_chars:
+        key_text = key_text[:max_chars]
+    
+    return key_text if key_text else text[:max_chars]
+
 
 # Page configuration
 st.set_page_config(
@@ -825,11 +891,27 @@ with tab1:
     # Full analysis
     if analyze_button and contract_text:
         with st.spinner("🤖 Running multi-agent analysis..."):
-            # Build query
+            # Show file size warning if large
+            file_size_mb = len(contract_text) / (1024 * 1024)
+            if file_size_mb > 5:
+                st.warning(f"📄 Large document detected ({file_size_mb:.1f}MB). Optimizing for analysis...")
+            
+            # Extract key sections to stay under token limit
+            if len(contract_text) > 12000:  # ~3000 tokens
+                st.info("📊 Extracting key sections from large document for optimal analysis...")
+                optimized_text = get_key_sections(contract_text, max_chars=6000)
+                analysis_note = f"\n\n[Note: Document was {len(contract_text):,} chars. Analyzing {len(optimized_text):,} chars of key sections]"
+                contract_for_analysis = optimized_text
+            else:
+                analysis_note = ""
+                contract_for_analysis = contract_text
+            
+            # Build query with optimized text
             full_query = f"""
             Analyze this contract:
             
-            {contract_text}
+            {contract_for_analysis}
+            {analysis_note}
             
             {query if query else 'Provide comprehensive analysis covering legal, compliance, financial, and operational aspects.'}
             """
