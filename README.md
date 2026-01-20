@@ -1,5 +1,8 @@
 # 🤖 AI-Powered Multi-Agent Contract Analysis System
 
+> 🌐 **[👉 Visit the Live Project Page](https://rakshgm.github.io/AI-Contract-Analysis)** for interactive demo and deployment options!
+
+---
 
 ## 📋 Table of Contents
 
