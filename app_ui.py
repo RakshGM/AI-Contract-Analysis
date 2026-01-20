@@ -29,10 +29,10 @@ from ai_agents.report_generator import (
 # OPTIMIZATION: Intelligent Document Chunking for Large Files
 # ============================================================================
 
-def chunk_document(text: str, max_tokens: int = 6000, overlap: int = 200):
+def chunk_document(text: str, max_tokens: int = 10000, overlap: int = 200):
     """
     Split large documents into manageable chunks for API processing
-    Optimized for Gemini's token limit
+    Optimized for Groq Llama models (30K token context limit)
     
     Args:
         text: Full document text
@@ -62,16 +62,18 @@ def chunk_document(text: str, max_tokens: int = 6000, overlap: int = 200):
     
     return chunks
 
-def get_key_sections(text: str, max_chars: int = 3000):
+def get_key_sections(text: str, max_chars: int = 15000):
     """
     Extract the most important sections from large documents
-    Focus on: definitions, payment terms, liability, termination
+    Groq Llama models can handle larger context (up to 30K tokens)
     """
     important_keywords = [
         "definition", "agreement", "payment", "fee", "compensation",
         "liability", "limitation", "indemnif", "termination", "term",
         "confidential", "ip", "intellectual property", "compliance",
-        "warranty", "sla", "service level", "breach", "dispute"
+        "warranty", "sla", "service level", "breach", "dispute",
+        "obligation", "responsibility", "provision", "condition",
+        "schedule", "appendix", "exhibit"
     ]
     
     lines = text.split('\n')
@@ -81,8 +83,8 @@ def get_key_sections(text: str, max_chars: int = 3000):
         if any(keyword in line.lower() for keyword in important_keywords):
             important_lines.append(line)
     
-    # Combine important lines
-    key_text = '\n'.join(important_lines[:200])
+    # Combine important lines (extract more for Groq's higher limit)
+    key_text = '\n'.join(important_lines[:500])
     
     if len(key_text) > max_chars:
         key_text = key_text[:max_chars]
@@ -896,11 +898,11 @@ with tab1:
             if file_size_mb > 5:
                 st.warning(f"📄 Large document detected ({file_size_mb:.1f}MB). Optimizing for analysis...")
             
-            # Extract key sections to stay under token limit
-            if len(contract_text) > 12000:  # ~3000 tokens
-                st.info("📊 Extracting key sections from large document for optimal analysis...")
-                optimized_text = get_key_sections(contract_text, max_chars=6000)
-                analysis_note = f"\n\n[Note: Document was {len(contract_text):,} chars. Analyzing {len(optimized_text):,} chars of key sections]"
+            # Extract key sections - Groq can handle larger context (up to 30K tokens)
+            if len(contract_text) > 20000:  # ~5000 tokens - Groq's Llama can handle 30K
+                st.info("📊 Extracting key sections from large document for optimal Groq analysis...")
+                optimized_text = get_key_sections(contract_text, max_chars=15000)
+                analysis_note = f"\n\n[Note: Document was {len(contract_text):,} chars. Analyzing {len(optimized_text):,} chars of key sections with Groq]"
                 contract_for_analysis = optimized_text
             else:
                 analysis_note = ""
