@@ -314,23 +314,25 @@
             
             <!-- Deployment Options -->
             <div class="deployment-section">
-                <h2>🚀 Try It Out</h2>
-                <p>Choose how you want to use the Contract Analysis System:</p>
+                <h2>🚀 Deploy Your Own Instance</h2>
+                <p style="margin-bottom: 15px; color: #764ba2; font-weight: 600;">⚠️ This is a landing page. Deploy the actual working application using the options below:</p>
                 
                 <div class="deployment-options">
                     <div class="option">
                         <h3>🌐 Web Interface</h3>
-                        <p>Interactive UI for analyzing contracts</p>
-                        <a href="https://streamlit.io" target="_blank" class="btn btn-secondary">Deploy on Streamlit Cloud</a>
+                        <p>Interactive Streamlit UI for analyzing contracts</p>
+                        <a href="https://share.streamlit.io/deploy" target="_blank" class="btn btn-secondary">Deploy Streamlit App</a>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: #999;">File: <code>app_ui.py</code></p>
                     </div>
                     <div class="option">
                         <h3>⚙️ REST API</h3>
-                        <p>Integrate into your applications</p>
-                        <a href="https://render.com" target="_blank" class="btn btn-secondary">Deploy on Render</a>
+                        <p>FastAPI backend for integration</p>
+                        <a href="https://render.com/deploy" target="_blank" class="btn btn-secondary">Deploy on Render</a>
+                        <p style="margin-top: 10px; font-size: 0.85em; color: #999;">File: <code>api_fast_uploads.py</code></p>
                     </div>
                     <div class="option">
                         <h3>💻 Local Setup</h3>
-                        <p>Run on your machine</p>
+                        <p>Run on your machine (recommended to start)</p>
                         <a href="#quick-start" class="btn btn-secondary">See Setup Guide</a>
                     </div>
                 </div>
@@ -338,32 +340,35 @@
             
             <!-- Quick Start -->
             <div class="deployment-section" id="quick-start">
-                <h2>📖 Quick Start</h2>
+                <h2>📖 Quick Start (Local Development)</h2>
                 
-                <h3 style="margin-top: 20px; margin-bottom: 15px; color: #333;">Option 1: Streamlit Web UI</h3>
-                <pre style="background: white; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>pip install -r requirements.txt
-streamlit run app_ui.py</code></pre>
+                <h3 style="margin-top: 20px; margin-bottom: 15px; color: #333;">Step 1: Clone & Setup</h3>
+                <pre style="background: white; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>git clone https://github.com/RakshGM/AI-Contract-Analysis.git
+cd AI-Contract-Analysis
+pip install -r requirements.txt</code></pre>
                 
-                <h3 style="margin-top: 20px; margin-bottom: 15px; color: #333;">Option 2: FastAPI REST API</h3>
-                <pre style="background: white; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>pip install -r requirements.txt
-uvicorn api_fast_uploads:app --host 0.0.0.0 --port 8000</code></pre>
-                
-                <h3 style="margin-top: 20px; margin-bottom: 15px; color: #333;">Option 3: Python Library</h3>
-                <pre style="background: white; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>from ai_agents.main import run
-
-# Analyze a contract
-result = run("contract_query")</code></pre>
-                
-                <h3 style="margin-top: 20px; margin-bottom: 15px; color: #333;">Required Setup</h3>
-                <ol style="margin-left: 20px; line-height: 1.8;">
-                    <li>Clone the repository</li>
-                    <li>Create <code>.env</code> file with:
-                        <pre style="background: white; padding: 10px; border-radius: 4px; margin-top: 10px;"><code>GEMINI_API_KEY=your_key_here
-PINECONE_API_KEY=your_key_here
+                <h3 style="margin-top: 20px; margin-bottom: 15px; color: #333;">Step 2: Configure Environment</h3>
+                <p>Create <code>.env</code> file with your API keys:</p>
+                <pre style="background: white; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>GEMINI_API_KEY=your_gemini_key_here
+PINECONE_API_KEY=your_pinecone_key_here
 PINECONE_INDEX=your_index_name</code></pre>
-                    </li>
-                    <li>Install dependencies: <code>pip install -r requirements.txt</code></li>
-                    <li>Choose deployment option above</li>
+                
+                <h3 style="margin-top: 20px; margin-bottom: 15px; color: #333;">Step 3: Run the Application</h3>
+                
+                <p style="font-weight: 600; margin-top: 15px;">Option A: Web UI (Streamlit)</p>
+                <pre style="background: white; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>streamlit run app_ui.py</code></pre>
+                <p style="font-size: 0.9em; color: #666;">Access at: <strong>http://localhost:8501</strong></p>
+                
+                <p style="font-weight: 600; margin-top: 15px;">Option B: REST API (FastAPI)</p>
+                <pre style="background: white; padding: 15px; border-radius: 6px; overflow-x: auto;"><code>uvicorn api_fast_uploads:app --host 0.0.0.0 --port 8000 --reload</code></pre>
+                <p style="font-size: 0.9em; color: #666;">API Docs at: <strong>http://localhost:8000/docs</strong></p>
+                
+                <h3 style="margin-top: 20px; margin-bottom: 15px; color: #333;">Get API Keys</h3>
+                <ol style="margin-left: 20px; line-height: 1.8;">
+                    <li><strong>Google Gemini API:</strong> <a href="https://ai.google.dev/" target="_blank" style="color: #667eea;">Get API Key →</a></li>
+                    <li><strong>Pinecone (Vector DB):</strong> <a href="https://www.pinecone.io/" target="_blank" style="color: #667eea;">Sign Up Free →</a></li>
+                    <li>Configure keys in <code>.env</code> file (see Step 2 above)</li>
+                    <li>Start analyzing contracts!</li>
                 </ol>
             </div>
             
@@ -387,7 +392,7 @@ PINECONE_INDEX=your_index_name</code></pre>
         
         <div class="footer">
             <p>Built with <strong>Google Gemini</strong> • <strong>LangGraph</strong> • <strong>Pinecone</strong> • <strong>FastAPI</strong> • <strong>Streamlit</strong></p>
-            <p style="margin-top: 10px;">📚 <a href="https://github.com/your-repo" style="color: #667eea; text-decoration: none;">View on GitHub</a></p>
+            <p style="margin-top: 10px;">📚 <a href="https://github.com/RakshGM/AI-Contract-Analysis" style="color: #667eea; text-decoration: none; font-weight: 600;">View Source Code on GitHub →</a></p>
         </div>
     </div>
 </body>
