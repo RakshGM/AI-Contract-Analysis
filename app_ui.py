@@ -6,6 +6,7 @@ Provides a polished interface for multi-domain contract analysis
 import streamlit as st
 import asyncio
 from datetime import datetime
+import re
 from ai_agents import (
     PlanningModule,
     build_graph,
@@ -23,6 +24,73 @@ from ai_agents.report_generator import (
     ReportFormat,
     ReportFocus
 )
+
+# ============================================================================
+# OPTIMIZATION: Intelligent Document Chunking for Large Files
+# ============================================================================
+
+def chunk_document(text: str, max_tokens: int = 10000, overlap: int = 200):
+    """
+    Split large documents into manageable chunks for API processing
+    Optimized for Groq Llama models (30K token context limit)
+    
+    Args:
+        text: Full document text
+        max_tokens: Max tokens per chunk (~4 chars per token)
+        overlap: Overlap between chunks for context
+    
+    Returns:
+        List of document chunks
+    """
+    max_chars = max_tokens * 4
+    chunks = []
+    
+    # Split by paragraphs first
+    paragraphs = text.split('\n\n')
+    current_chunk = ""
+    
+    for para in paragraphs:
+        if len(current_chunk) + len(para) < max_chars:
+            current_chunk += para + '\n\n'
+        else:
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+            current_chunk = para + '\n\n'
+    
+    if current_chunk:
+        chunks.append(current_chunk.strip())
+    
+    return chunks
+
+def get_key_sections(text: str, max_chars: int = 15000):
+    """
+    Extract the most important sections from large documents
+    Groq Llama models can handle larger context (up to 30K tokens)
+    """
+    important_keywords = [
+        "definition", "agreement", "payment", "fee", "compensation",
+        "liability", "limitation", "indemnif", "termination", "term",
+        "confidential", "ip", "intellectual property", "compliance",
+        "warranty", "sla", "service level", "breach", "dispute",
+        "obligation", "responsibility", "provision", "condition",
+        "schedule", "appendix", "exhibit"
+    ]
+    
+    lines = text.split('\n')
+    important_lines = []
+    
+    for line in lines:
+        if any(keyword in line.lower() for keyword in important_keywords):
+            important_lines.append(line)
+    
+    # Combine important lines (extract more for Groq's higher limit)
+    key_text = '\n'.join(important_lines[:500])
+    
+    if len(key_text) > max_chars:
+        key_text = key_text[:max_chars]
+    
+    return key_text if key_text else text[:max_chars]
+
 
 # Page configuration
 st.set_page_config(
@@ -309,6 +377,40 @@ st.markdown("""
         color: white !important;
     }
     
+    /* Selectbox styling - improve text visibility */
+    section[data-testid="stSidebar"] .stSelectbox label {
+        color: white !important;
+        font-weight: 600 !important;
+    }
+    
+    .stSelectbox label {
+        color: #000000 !important;
+        font-weight: 600 !important;
+    }
+    
+    section[data-testid="stSidebar"] div[data-baseweb="popover"] {
+        background-color: #ffffff !important;
+    }
+    
+    section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
+        color: white !important;
+    }
+    
+    /* Dropdown options - ensure black text on white background */
+    [data-baseweb="popover"] li {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+    }
+    
+    [data-baseweb="popover"] li:hover {
+        background-color: #f0f0f0 !important;
+        color: #000000 !important;
+    }
+    
+    [data-baseweb="select"] > div:first-child {
+        color: white !important;
+    }
+    
     /* Tab Styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 2rem;
@@ -498,6 +600,7 @@ with st.sidebar:
     
     # Analysis settings with icons
     st.markdown("#### 🎯 Analysis Settings")
+    st.markdown('<style>label { color: white !important; font-weight: 600 !important; }</style>', unsafe_allow_html=True)
     analysis_mode = st.selectbox(
         "Analysis Mode",
         ["Quick Analysis", "Comprehensive", "Domain-Specific"],
@@ -790,11 +893,27 @@ with tab1:
     # Full analysis
     if analyze_button and contract_text:
         with st.spinner("🤖 Running multi-agent analysis..."):
-            # Build query
+            # Show file size warning if large
+            file_size_mb = len(contract_text) / (1024 * 1024)
+            if file_size_mb > 5:
+                st.warning(f"📄 Large document detected ({file_size_mb:.1f}MB). Optimizing for analysis...")
+            
+            # Extract key sections - Groq can handle larger context (up to 30K tokens)
+            if len(contract_text) > 20000:  # ~5000 tokens - Groq's Llama can handle 30K
+                st.info("📊 Extracting key sections from large document for optimal Groq analysis...")
+                optimized_text = get_key_sections(contract_text, max_chars=15000)
+                analysis_note = f"\n\n[Note: Document was {len(contract_text):,} chars. Analyzing {len(optimized_text):,} chars of key sections with Groq]"
+                contract_for_analysis = optimized_text
+            else:
+                analysis_note = ""
+                contract_for_analysis = contract_text
+            
+            # Build query with optimized text
             full_query = f"""
             Analyze this contract:
             
-            {contract_text}
+            {contract_for_analysis}
+            {analysis_note}
             
             {query if query else 'Provide comprehensive analysis covering legal, compliance, financial, and operational aspects.'}
             """
